@@ -1,0 +1,60 @@
+"use server";
+
+import type { LocationData } from "./types";
+import { updateExecutiveLocation } from "./salesforce";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
+interface ActionResult {
+  success: boolean;
+  message?: string;
+}
+
+export async function sendLocationData(location: LocationData): Promise<ActionResult> {
+  console.log("Sending location data to Salesforce:", location);
+
+  try {
+    // Get the current session to access Salesforce credentials
+    let session;
+    try {
+      session = await getServerSession(authOptions);
+    } catch (sessionError) {
+      console.error("Session error:", sessionError);
+      return {
+        success: false,
+        message: "Session expired. Please log in again.",
+      };
+    }
+    
+    if (!session?.accessToken || !session?.instanceUrl) {
+      return {
+        success: false,
+        message: "Not authenticated with Salesforce. Please log in again.",
+      };
+    }
+
+    const result = await updateExecutiveLocation(
+      location, 
+      session.accessToken, 
+      session.instanceUrl,
+      {
+        name: session.user?.name || undefined,
+        email: session.user?.email || undefined,
+        id: session.user?.id // Salesforce user ID from session
+      }
+    );
+    
+    console.log("Successfully sent location data.");
+    return {
+      success: true,
+      message: result.message,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    console.error("Salesforce API Error:", errorMessage);
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
