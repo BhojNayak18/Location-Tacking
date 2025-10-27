@@ -10,7 +10,15 @@ export async function POST(request: NextRequest) {
     
     if (!session?.accessToken || !session?.instanceUrl) {
       return NextResponse.json(
-        { success: false, message: 'Not authenticated with Salesforce' },
+        { success: false, message: 'Not authenticated with Salesforce', error: 'token_expired' },
+        { status: 401 }
+      );
+    }
+    
+    // Check if token refresh failed
+    if ((session as any).error === 'RefreshAccessTokenError') {
+      return NextResponse.json(
+        { success: false, message: 'Session expired. Please log in again.', error: 'refresh_failed' },
         { status: 401 }
       );
     }

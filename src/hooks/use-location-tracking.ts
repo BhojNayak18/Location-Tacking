@@ -10,12 +10,13 @@ interface UseLocationTrackingProps {
 
 export function useLocationTracking({
   onLocationUpdate,
-  interval = 300000, // 5 minutes default
+  interval = 120000, // 2 minutes default
 }: UseLocationTrackingProps) {
   const [isTracking, setIsTracking] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const intervalId = useRef<NodeJS.Timeout | null>(null);
+  const isTrackingRef = useRef(false);
 
   const handleGeolocationError = (err: GeolocationPositionError) => {
     let errorMessage = "An unknown error occurred.";
@@ -48,14 +49,15 @@ export function useLocationTracking({
           timestamp: new Date().toISOString(),
         };
         setCurrentLocation(newLocation);
-        if (isTracking) {
+        // Check isTracking state at the time of location update using ref
+        if (isTrackingRef.current) {
           onLocationUpdate(newLocation);
         }
       },
       handleGeolocationError,
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-  }, [onLocationUpdate, isTracking]);
+  }, [onLocationUpdate]); // Remove isTracking from dependencies
 
 
   const startTracking = () => {
@@ -74,6 +76,7 @@ export function useLocationTracking({
         
         // Set up interval
         setIsTracking(true);
+        isTrackingRef.current = true;
         intervalId.current = setInterval(getLocation, interval);
         
         permissionStatus.onchange = () => {
@@ -87,6 +90,7 @@ export function useLocationTracking({
         // Fallback for browsers that don't support Permissions API
         getLocation();
         setIsTracking(true);
+        isTrackingRef.current = true;
         intervalId.current = setInterval(getLocation, interval);
     }
   };
@@ -97,12 +101,13 @@ export function useLocationTracking({
       intervalId.current = null;
     }
     setIsTracking(false);
+    isTrackingRef.current = false;
   };
   
   // Effect to fetch location once on mount for "Send Now" button readiness
   useEffect(() => {
     getLocation();
-  }, [getLocation]);
+  }, []); // Remove getLocation dependency to prevent infinite loop
 
   useEffect(() => {
     return () => {

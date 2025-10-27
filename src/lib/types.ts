@@ -16,6 +16,9 @@ declare module "next-auth" {
       accessToken?: string;
       refreshToken?: string;
       instanceUrl?: string;
+      user?: {
+        id?: string;
+      } & DefaultSession["user"];
     }
 }
 

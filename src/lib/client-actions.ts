@@ -5,6 +5,7 @@ import type { LocationData } from "./types";
 interface ActionResult {
   success: boolean;
   message?: string;
+  requiresReauth?: boolean;
 }
 
 // Client-side function to send location data via our API route
@@ -51,6 +52,20 @@ export async function sendLocationDataClient(
 
   } catch (error) {
     console.error('Location API Error:', error);
+    
+    // Check if it's an authentication error
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      // Force session refresh
+      const event = new Event('visibilitychange');
+      document.dispatchEvent(event);
+      
+      return {
+        success: false,
+        message: 'Session expired. Please try again or log in again.',
+        requiresReauth: true
+      };
+    }
+    
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Failed to send location to Salesforce',

@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
-import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import ProtectedRoute from "@/components/auth/protected-route";
+import { Navbar } from "@/components/dashboard/navbar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen w-full">
-        <DashboardSidebar />
-        <main className="flex-1 flex flex-col bg-background">
+      <div className="min-h-screen w-full bg-background">
+        <Navbar />
+        <main className="flex flex-col min-h-screen">
           {children}
         </main>
       </div>
