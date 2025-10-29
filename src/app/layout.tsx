@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import AuthProvider from "@/components/auth/auth-provider";
+import PwaRegistrar from "@/components/pwa/PwaRegistrar";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -14,6 +15,18 @@ const ptSans = PT_Sans({
 export const metadata: Metadata = {
   title: "ExecTracker",
   description: "Real-time Executive Location Tracking",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#0b0b0b",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
+  appleWebApp: {
+    statusBarStyle: "black-translucent",
+    capable: true,
+    title: "ExecTracker",
+  },
 };
 
 export default function RootLayout({
@@ -33,6 +46,7 @@ export default function RootLayout({
           {children}
         </AuthProvider>
         <Toaster />
+        <PwaRegistrar />
       </body>
     </html>
   );
